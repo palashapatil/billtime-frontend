@@ -1,45 +1,62 @@
+// src/pages/LoginPage.jsx
 import { useState } from "react";
-import axios from "../api/http";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
-function Login() {
+export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const navigate = useNavigate();
 
-  const handleLogin = async () => {
+  const handleLogin = async (e) => {
+    e.preventDefault();
     try {
-      const res = await axios.post("/auth/login", { email, password });
-      localStorage.setItem("token", res.data.token);
-      alert("Logged in");
+      const res = await axios.post("http://localhost:8080/api/auth/login", {
+        email,
+        password,
+      });
+
+      const { token, user } = res.data;
+
+      localStorage.setItem("token", token);
+      localStorage.setItem("user", JSON.stringify(user));
+      console.log("User stored:", JSON.stringify(user)); // ✅ Add this
+
+      navigate("/dashboard"); // ✅ Redirect to dashboard
     } catch (err) {
-      alert("Login failed");
+      setError("Invalid credentials");
     }
   };
 
   return (
-    <div className="p-4 max-w-sm mx-auto">
+    <div className="max-w-md mx-auto mt-20 p-4 border rounded-xl shadow-md bg-white">
       <h2 className="text-xl font-bold mb-4">Login</h2>
-      <input
-        className="border p-2 mb-2 w-full"
-        type="email"
-        placeholder="Email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-      />
-      <input
-        className="border p-2 mb-2 w-full"
-        type="password"
-        placeholder="Password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-      />
-      <button
-        className="bg-blue-600 text-white px-4 py-2"
-        onClick={handleLogin}
-      >
-        Login
-      </button>
+      {error && <p className="text-red-500">{error}</p>}
+      <form onSubmit={handleLogin} className="space-y-4">
+        <input
+          className="w-full p-2 border rounded"
+          type="email"
+          placeholder="Email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+        />
+        <input
+          className="w-full p-2 border rounded"
+          type="password"
+          placeholder="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+        />
+        <button
+          className="w-full bg-blue-600 text-white py-2 rounded"
+          type="submit"
+        >
+          Login
+        </button>
+      </form>
     </div>
   );
 }
-
-export default Login;
